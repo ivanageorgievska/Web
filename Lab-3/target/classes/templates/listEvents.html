@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="utf-8">
+  <title>Event Booking page - Welcome and choose an Event</title>
+  <style type="text/css">
+    body {
+      width: 800px;
+      margin: auto;
+    }
+    a {
+      text-decoration: none;
+      color:black;
+    }
+    input{
+      border:none;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Welcome to our Event Booking App</h1>
+</header>
+<main>
+  <h2>Search an event:</h2>
+  <nav class="d-flex justify-content-end">
+    <button id="login-btn" class="btn btn-primary mx-2" sec:authorize="isAnonymous()">
+      <a href="/login" class="text-white text-decoration-none">Login</a>
+    </button>
+
+    <button id="logout-btn" class="btn btn-danger mx-2" sec:authorize="isAuthenticated()">
+      <a href="/logout" class="text-white text-decoration-none">Logout</a>
+    </button>
+    <span sec:authorize="isAuthenticated()">Hello, <span sec:authentication="name"></span>!</span>
+  </nav>
+
+  <form th:method="GET" th:action="@{/events}">
+    <label for="search">By Event Name:</label>
+    <input type="text" name="searchName" id="search" placeholder="Search an event">
+    <br/>
+    <label for="minRating">By Minimum Event Rating (0.00 - 10.00): </label>
+    <input type="number" name="minRating" id="minRating" min="0" max="10" placeholder="Min Rating">
+    <br/>
+    <button><input type="submit" value="Submit"></button>
+  </form>
+
+  <h2>Filter by Location:</h2>
+  <form th:method="GET" th:action="@{/events/by-location}">
+    <select name="locationId" class="form-control">
+      <option th:each="location : ${locations}"
+              th:value="${location.id}"
+              th:text="${location.name}">
+      </option>
+    </select>
+    <button type="submit">Filter</button>
+  </form>
+
+  <form id="mainForm" th:method="POST" th:action="@{/servlet/events/event-booking}">
+    <h2>Choose an event:</h2>
+    <div th:if="${events != null}">
+      <div th:each="event : ${events}">
+        <input type="radio" th:id="${event.getId()}" name="rad" th:value="${event.name}" />
+        <label th:for="${event.getId()}">
+          Name: <th:block th:text="${event.getName()}"></th:block>,
+          Description: <th:block th:text="${event.getDescription()}"></th:block>,
+          Rating: <th:block th:text="${event.getPopularityScore()}"></th:block>
+          Location: <th:block th:if="${event.location != null}" th:text="${event.location.name}"></th:block>
+        </label>
+        <br>
+        <a th:href="@{'/events/edit-form/{id}' (id=${event.getId()})}"  sec:authorize="hasRole('ADMIN')">Edit</a>
+       <a th:href="@{'/events/event-details/{id}' (id=${event.getId()})}">Details</a>
+        <br/>
+        <br/>
+      </div>
+    </div>
+    <div th:if="${events == null}">
+      <p>No events available.</p>
+    </div>
+
+    <a href="/events/add-form" sec:authorize="hasRole('ADMIN')" class="btn btn-block btn-dark add-product-btn">
+      Add new event
+    </a>
+    <br>
+    <br>
+    <h2>Choose number of tickets:</h2>
+    <input type="number" name="numTickets" min="1" max="10"><br/>
+    <br/>
+    <button> <input type="submit" value="Submit"></button>
+  </form>
+</main>
+</body>
+</html>
